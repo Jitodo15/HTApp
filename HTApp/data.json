@@ -1,0 +1,157 @@
+{
+    "default_responses": {
+        "greeting": [
+            "Welcome! I'm your academic advising navigation assistant. I'll help you find the right advisor, office, or scheduling information.",
+            "Hi there! Need help locating your academic advisor or scheduling an appointment? I'm here to guide you.",
+            "Hello! Confused about where to go for academic advising? Let me help you find your way."
+        ],
+        "farewell": [
+            "Thank you for using our academic advising navigation service. I hope you found the information you needed!",
+            "Hope this helps you find your way. Don't hesitate to ask if you need further assistance.",
+            "Take care, and best of luck navigating your academic journey!"
+        ],
+        "unsure": [
+            "I'm having trouble understanding your specific need. Could you provide more details about your department or advisor search?",
+            "I want to help you find the right advisor, but I need a bit more information. Can you clarify your question?",
+            "Let's try again. Could you tell me your major or what specific advising information you're looking for?"
+        ]
+    },
+    "advisor_information": {
+        "departments": {
+            "Biology": {
+                "advisor": "Dr. Wenxian Tan",
+                "email": "wtan@htu.edu",
+                "office": "D-L 206"
+            },
+            "Business Administration": {
+                "advisor": "Ms. Zoe Rodriguez",
+                "email": "zoerodriguez@htu.edu",
+                "office": "A-L 306"
+            },
+            "Chemistry": {
+                "advisor": "Dr. Yalan Ning",
+                "email": "yning@htu.edu",
+                "office": "D-L 306A"
+            },
+            "Communication": {
+                "advisor": "Dr. Rafael Vela",
+                "email": "ravela@htu.edu",
+                "office": "A-L 315B"
+            },
+            "Computer Science": {
+                "advisor": "Ms. Zoe Rodriguez",
+                "email": "zoerodriguez@htu.edu",
+                "office": "A-L 306"
+            },
+            "Criminal Justice": {
+                "advisors": [
+                    {
+                        "name": "Dr. Lorraine Samuels",
+                        "email": "lsamuels@htu.edu",
+                        "office": "J-M 219"
+                    },
+                    {
+                        "name": "Dr. Michael Hirsch",
+                        "email": "mlhirsch@htu.edu",
+                        "office": "J-M 201"
+                    }
+                ]
+            },
+            "Education": {
+                "advisors": [
+                    {
+                        "name": "Mr. Anthony Fairley",
+                        "email": "afairley@htu.edu",
+                        "office": "E-H 104C"
+                    },
+                    {
+                        "name": "Dr. Jesse Rivers",
+                        "email": "jrivers@htu.edu",
+                        "office": "E-H 104A"
+                    }
+                ]
+            },
+            "English": {
+                "advisor": "Dr. Shawanda Stewart",
+                "email": "sjstewart@htu.edu",
+                "office": "J-M 209"
+            },
+            "Environmental Justice": {
+                "advisor": "Dr. Wenxian Tan",
+                "email": "wtan@htu.edu",
+                "office": "D-L 206"
+            },
+            "Global Studies": {
+                "advisor": "Dr. Michael Hirsch",
+                "email": "mlhirsch@htu.edu",
+                "office": "J-M 201"
+            },
+            "History": {
+                "advisor": "Dr. Alaine Hutson",
+                "email": "ashutson@htu.edu",
+                "office": "J-M 202"
+            },
+            "Kinesiology": {
+                "advisor": "Dr. Carlos Cervantes",
+                "email": "cmcervantes@htu.edu",
+                "office": "E-H 200"
+            },
+            "Mathematics": {
+                "advisor": "Dr. Ahmad Kamalvand",
+                "email": "aakamalvand@htu.edu",
+                "office": "D-L 104C"
+            },
+            "Mechanical Engineering": {
+                "advisor": "Ms. Zoe Rodriguez",
+                "email": "zoerodriguez@htu.edu",
+                "office": "A-L 306"
+            },
+            "Music": {
+                "advisor": "Dr. Stephen Burnaman",
+                "email": "spburnaman@htu.edu",
+                "office": "J-M 221"
+            },
+            "Psychology": {
+                "advisor": "Dr. Debra Murphy",
+                "email": "dlmurphy@htu.edu",
+                "office": "A-L 313"
+            },
+            "Sociology": {
+                "advisor": "Dr. Michael Hirsch",
+                "email": "mlhirsch@htu.edu",
+                "office": "J-M 201"
+            }
+        },
+        "freshman_advising": {
+            "A-M": {
+                "advisor": "Mrs. June Rivers",
+                "booking_link": "https://calendly.com/junerivers/academicadvisingappointment",
+                "office": "J-M 101"
+            },
+            "N-Z": {
+                "advisor": "Mrs. Virginia Pearson",
+                "booking_link": "https://calendly.com/virginiapearson/academicadvising",
+                "office": "J-M 101"
+            }
+        }
+    },
+    "intent_matching": [
+        {
+            "keywords": [
+                "advisor", "advising", "help", "guidance", "support",
+                "academic", "department", "major", "contact"
+            ],
+            "response_templates": [
+                "I can help you find your academic advisor. Can you tell me your department or major?",
+                "Looking for academic guidance? I'll help you connect with the right advisor.",
+                "Academic advising is crucial for your success. Let me assist you in finding the right support."
+            ]
+        }
+    ],
+    "exact_matches": {
+        "Who is my advisor?": [
+            "To determine your advisor, I'll need to know your major or last name.",
+            "Your advisor depends on your specific department and last name. Can you provide more details?"
+        ]
+    }
+}
