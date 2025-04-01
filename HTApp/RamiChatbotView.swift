@@ -144,7 +144,7 @@ struct ChatbotOverlay: View {
                         // Ram icon
                         ZStack {
                             Circle()
-                                .fill(maroonColor)
+                            .fill(Color.maroonDark)
                                 .frame(width: 40, height: 40)
                             
                             Text("🐏")
@@ -305,7 +305,7 @@ struct RamiChatbotView: View {
                     // Ram icon or mascot
                     ZStack {
                         Circle()
-                            .fill(maroonColor)
+                        .fill(Color.maroonDark)
                             .frame(width: 50, height: 50)
                         
                         Text("🐏")

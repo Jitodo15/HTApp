@@ -318,52 +318,122 @@ struct RideRequestRow: View {
     }
 }
 
-// Driver Dashboard View
+// Modified Driver Dashboard View to include ride completion and points
 struct DriverDashboardView: View {
     @EnvironmentObject var viewModel: RideShareViewModel
+    @State private var isShowingPointsEarned = false
+    @State private var pointsEarned: Int = 0
     
     var body: some View {
-        NavigationView {
-            VStack {
-                // Driver toggle
-                Toggle(isOn: .constant(true)) {
-                    Text("Available for rides")
+        VStack {
+            // Driver toggle
+            Toggle(isOn: .constant(true)) {
+                Text("Available for rides")
+            }
+            .padding()
+            .tint(.green)
+            
+            // Points summary
+            HStack {
+                VStack(alignment: .leading) {
+                    Text("Driver Points")
+                        .font(.headline)
+                    Text("\(viewModel.currentStudent?.points ?? 0)")
+                        .font(.title)
+                        .fontWeight(.bold)
+                        .foregroundColor(.goldDark)
                 }
-                .padding()
-                .tint(.green)
                 
-                // Ride requests list
-                List {
-                    Section(header: Text("Incoming Requests")) {
-                        if viewModel.incomingRideRequests.isEmpty {
-                            Text("No incoming ride requests")
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                        } else {
-                            ForEach(viewModel.incomingRideRequests) { request in
+                Spacer()
+                
+                NavigationLink(destination: DriverPointsDashboardView().environmentObject(viewModel)) {
+                    Text("View Details")
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.maroonDark)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(16)
+            .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
+            .padding(.horizontal)
+            
+            // Ride requests list
+            List {
+                Section(header: Text("Incoming Requests")) {
+                    if viewModel.incomingRideRequests.isEmpty {
+                        Text("No incoming ride requests")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    } else {
+                        ForEach(viewModel.incomingRideRequests) { request in
+                            if request.status == .requested {
                                 IncomingRequestRow(request: request)
                                     .environmentObject(viewModel)
                             }
                         }
                     }
-                    
-                    Section(header: Text("Upcoming Rides")) {
-                        if !viewModel.incomingRideRequests.contains(where: { $0.status == .accepted }) {
-                            Text("No upcoming rides")
-                                .foregroundColor(.secondary)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                                .padding()
-                        } else {
-                            ForEach(viewModel.incomingRideRequests.filter { $0.status == .accepted }) { request in
-                                AcceptedRideRow(request: request)
-                            }
+                }
+                
+                Section(header: Text("Upcoming Rides")) {
+                    if !viewModel.incomingRideRequests.contains(where: { $0.status == .accepted }) {
+                        Text("No upcoming rides")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .center)
+                            .padding()
+                    } else {
+                        ForEach(viewModel.incomingRideRequests.filter { $0.status == .accepted }) { request in
+                            AcceptedRideRowWithCompletion(request: request, onComplete: { rating in
+                                // Calculate points before completing the ride
+                                let basePoints = 10
+                                let passengerPoints = (request.numberOfPassengers - 1) * 5
+                                let ratingBonus = rating == 5.0 ? 15 : 0
+                                pointsEarned = basePoints + passengerPoints + ratingBonus
+                                
+                                // Complete the ride with rating
+                                viewModel.completeRide(request: request, rating: rating)
+                                
+                                // Show points earned notification
+                                isShowingPointsEarned = true
+                                
+                                // Hide notification after delay
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                    isShowingPointsEarned = false
+                                }
+                            })
                         }
                     }
                 }
             }
-            .navigationTitle("Driver Dashboard")
         }
+        .navigationTitle("Driver Dashboard")
+        .overlay(
+            ZStack {
+                if isShowingPointsEarned {
+                    VStack {
+                        Text("Points Earned!")
+                            .font(.headline)
+                            .foregroundColor(.white)
+                        
+                        Text("+\(pointsEarned)")
+                            .font(.title)
+                            .fontWeight(.bold)
+                            .foregroundColor(.white)
+                    }
+                    .padding()
+                    .background(Color.green)
+                    .cornerRadius(12)
+                    .shadow(radius: 10)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .animation(.spring(), value: isShowingPointsEarned)
+                }
+            }
+        )
     }
 }
 

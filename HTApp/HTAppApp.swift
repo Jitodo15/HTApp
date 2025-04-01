@@ -101,6 +101,7 @@ class DatabaseManager {
 struct HTAppApp: App {
     @StateObject private var locationManager = LocationManager()
     @StateObject private var appState = AppState()
+   @State private var showSplash = true
     
     init() {
       GMSServices.provideAPIKey(ProcessInfo.processInfo.environment["MAP_API_KEY"]!)
@@ -114,15 +115,24 @@ struct HTAppApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationView {
+          ZStack {
+            if showSplash {
+              SplashScreenView(showSplash: $showSplash)
+                .transition(.opacity)
+            } else{
+              NavigationView {
                 SignupView()
-                    .preferredColorScheme(.light)
-                    .environmentObject(appState)
-                    .onAppear {
-                        locationManager.startUpdatingLocation()
-                        startPeriodicLocationUpdates()
-                    }
+                  .preferredColorScheme(.light)
+                  .environmentObject(appState)
+                  .onAppear {
+                    locationManager.startUpdatingLocation()
+                    startPeriodicLocationUpdates()
+                  }
+              }
+              .transition(.opacity)
             }
+          }
+          .animation(.easeInOut(duration: 0.5), value: showSplash)
         }
     }
     

@@ -13,6 +13,15 @@ struct TransportationView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
+              HStack {
+                Text("Transportation")
+                  .font(.largeTitle)
+                  .fontWeight(.bold)
+                  .foregroundColor(Color.maroonDark)
+                
+                Spacer()
+              }
+              .padding(.horizontal)
                 // Conditional views based on user role
                 if let user = appState.currentUser {
                     switch user.role {
@@ -27,12 +36,13 @@ struct TransportationView: View {
                     DefaultTransportationView()
                 }
             }
-            .navigationTitle("Transportation")
+            .navigationBarHidden(true)
             .padding()
         }
     }
 }
 
+// Update TransportationView to include Driver Points Dashboard
 struct DriverTransportationView: View {
     @StateObject private var rideShareViewModel = RideShareViewModel()
     
@@ -45,6 +55,16 @@ struct DriverTransportationView: View {
                     description: "Manage your ride requests",
                     iconName: "car.fill",
                     color: Color.goldDark
+                )
+            }
+            
+            // Driver Points
+            NavigationLink(destination: DriverPointsDashboardView().environmentObject(rideShareViewModel)) {
+                TransportationOptionCard(
+                    title: "Driver Points",
+                    description: "View and redeem your earned points",
+                    iconName: "star.circle.fill",
+                    color: Color.maroonDark
                 )
             }
             
@@ -62,6 +82,7 @@ struct DriverTransportationView: View {
         }
     }
 }
+
 
 struct StudentTransportationView: View {
     @StateObject private var rideShareViewModel = RideShareViewModel()

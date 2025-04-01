@@ -138,10 +138,16 @@ struct SignupView: View {
     var body: some View {
         NavigationStack{
             VStack{
+              
+                Image("ramcore-logo")
+                  .resizable()
+                  .scaledToFit()
+                  .frame(height: 60)
+                  .clipShape(RoundedRectangle(cornerRadius: 10))
                 Text("Get Started")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.bottom, 42)
+                    .padding(.bottom, 10)
                 VStack(spacing: 10.0){
                     TextField("Full Name", text: $fullName)
                         .padding()
@@ -213,7 +219,7 @@ struct SignupView: View {
                     NavigationLink(destination: LoginView().navigationBarBackButtonHidden(true)) {
                         Text("Already have an account? Log In")
                             .fontWeight(.thin)
-                            .foregroundStyle(Color.blue)
+                            .foregroundStyle(Color.black)
                             .underline()
                     }
                     Spacer()

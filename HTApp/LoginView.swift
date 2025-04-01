@@ -123,10 +123,16 @@ struct LoginView: View {
     var body: some View {
         NavigationStack{
             VStack{
+              Image("ramcore-logo")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
                 Text("Welcome Back!")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .padding(.bottom, 42)
+                    .padding(.bottom, 32)
+              
                 VStack(spacing: 14.0){
                     TextField("Username", text: $username)
                         .padding()

@@ -10,6 +10,8 @@ import SwiftUI
 
 // MARK: - View Models
 
+// MARK: - Updated ViewModel
+
 class RideShareViewModel: ObservableObject {
     @Published var currentStudent: Student?
     @Published var availableDrivers: [Driver] = []
@@ -18,6 +20,12 @@ class RideShareViewModel: ObservableObject {
     @Published var incomingRideRequests: [RideRequest] = []
     @Published var selectedDriver: Driver?
     @Published var numberOfPassengers: Int = 1
+    @Published var pointsTransactions: [PointsTransaction] = [] // Track points history
+    
+    // Points calculation constants
+    private let basePointsPerRide: Int = 10
+    private let passengerMultiplier: Int = 5 // Additional points per passenger
+    private let perfectRatingBonus: Int = 15
     
     // Sample data for demonstration
     init() {
@@ -35,7 +43,8 @@ class RideShareViewModel: ObservableObject {
             phoneNumber: "512-555-1234",
             isDriver: true,
             rating: 4.8,
-            totalRides: 42
+            totalRides: 42,
+            points: 580 // Initial points
         )
         
         // Sample drivers
@@ -51,7 +60,8 @@ class RideShareViewModel: ObservableObject {
                     phoneNumber: "512-555-2345",
                     isDriver: true,
                     rating: 4.9,
-                    totalRides: 120
+                    totalRides: 120,
+                    points: 1250
                 ),
                 vehicle: Vehicle(
                     id: "v1001",
@@ -78,7 +88,8 @@ class RideShareViewModel: ObservableObject {
                     phoneNumber: "512-555-3456",
                     isDriver: true,
                     rating: 4.7,
-                    totalRides: 85
+                    totalRides: 85,
+                    points: 910
                 ),
                 vehicle: Vehicle(
                     id: "v1002",
@@ -105,7 +116,8 @@ class RideShareViewModel: ObservableObject {
                     phoneNumber: "512-555-4567",
                     isDriver: true,
                     rating: 4.95,
-                    totalRides: 200
+                    totalRides: 200,
+                    points: 2150
                 ),
                 vehicle: Vehicle(
                     id: "v1003",
@@ -120,6 +132,37 @@ class RideShareViewModel: ObservableObject {
                 currentLocation: RideLocation(latitude: 30.2310, longitude: -97.7350, name: "St. Edwards Campus"),
                 departureTime: Date().addingTimeInterval(300), // 5 minutes from now
                 routeType: .inbound
+            )
+        ]
+        
+        // Sample points transactions
+        pointsTransactions = [
+            PointsTransaction(
+                id: UUID().uuidString,
+                driverId: "d1001",
+                rideRequestId: "r1001",
+                points: 25,
+                timestamp: Date().addingTimeInterval(-86400), // Yesterday
+                reason: .completedRide,
+                description: "Ride from St. Edwards to Main Campus"
+            ),
+            PointsTransaction(
+                id: UUID().uuidString,
+                driverId: "d1001",
+                rideRequestId: "r1002",
+                points: 35,
+                timestamp: Date().addingTimeInterval(-43200), // 12 hours ago
+                reason: .perfectRating,
+                description: "5-star rating on ride"
+            ),
+            PointsTransaction(
+                id: UUID().uuidString,
+                driverId: "d1001",
+                rideRequestId: "r1003",
+                points: 50,
+                timestamp: Date().addingTimeInterval(-21600), // 6 hours ago
+                reason: .consistentDriver,
+                description: "Completed 10 rides this week"
             )
         ]
     }
@@ -181,6 +224,122 @@ class RideShareViewModel: ObservableObject {
         }
     }
     
+    // Complete a ride and award points
+    func completeRide(request: RideRequest, rating: Double? = nil) {
+        if let index = incomingRideRequests.firstIndex(where: { $0.id == request.id }) {
+            var updatedRequest = incomingRideRequests[index]
+            updatedRequest.status = .completed
+            updatedRequest.completionTime = Date()
+            
+            if let rating = rating {
+                updatedRequest.rating = rating
+            }
+            
+            incomingRideRequests[index] = updatedRequest
+            
+            // Update in the requester's list too
+            if let myIndex = myRideRequests.firstIndex(where: { $0.id == request.id }) {
+                myRideRequests[myIndex] = updatedRequest
+            }
+            
+            // Award points if not already awarded
+            if !updatedRequest.pointsAwarded {
+                awardPointsForCompletedRide(request: updatedRequest)
+            }
+        }
+    }
+    
+ 
+  private func awardPointsForCompletedRide(request: RideRequest) {
+      guard let driverIndex = availableDrivers.firstIndex(where: { $0.id == request.driverId }) else {
+          return
+      }
+      
+      // Calculate base points
+      var totalPoints = basePointsPerRide
+      
+      // Add points for additional passengers
+      let passengerPoints = (request.numberOfPassengers - 1) * passengerMultiplier
+      totalPoints += passengerPoints
+      
+      // Add bonus for perfect rating if applicable
+      if let rating = request.rating, rating == 5.0 {
+          totalPoints += perfectRatingBonus
+      }
+      
+      // Update driver's points - proper mutation of student property
+      var updatedDriver = availableDrivers[driverIndex]
+      var updatedStudent = updatedDriver.student
+      updatedStudent.points += totalPoints
+      updatedStudent.totalRides += 1
+      updatedDriver.student = updatedStudent
+      updatedDriver.isAvailable = true // Make driver available again
+      availableDrivers[driverIndex] = updatedDriver
+      
+      // Update current student if they're the driver
+      if let currentStudent = self.currentStudent, currentStudent.id == updatedDriver.student.id {
+          var updatedCurrentStudent = currentStudent
+          updatedCurrentStudent.points += totalPoints
+          updatedCurrentStudent.totalRides += 1
+          self.currentStudent = updatedCurrentStudent
+      }
+      
+      // Record the transaction
+      let transaction = PointsTransaction(
+          id: UUID().uuidString,
+          driverId: request.driverId,
+          rideRequestId: request.id,
+          points: totalPoints,
+          timestamp: Date(),
+          reason: .completedRide,
+          description: "Ride from \(request.pickupLocation.name ?? "Unknown") to \(request.dropoffLocation.name ?? "Unknown")"
+      )
+      
+      pointsTransactions.append(transaction)
+      
+      // Mark the ride as having points awarded
+      if let index = incomingRideRequests.firstIndex(where: { $0.id == request.id }) {
+          incomingRideRequests[index].pointsAwarded = true
+      }
+      
+      if let index = myRideRequests.firstIndex(where: { $0.id == request.id }) {
+          myRideRequests[index].pointsAwarded = true
+      }
+  }
+
+  // Award bonus points method - fixed to properly handle mutations
+  func awardBonusPoints(driverId: String, points: Int, reason: PointsReason, description: String) {
+      guard let driverIndex = availableDrivers.firstIndex(where: { $0.id == driverId }) else {
+          return
+      }
+      
+      // Update driver's points
+      var updatedDriver = availableDrivers[driverIndex]
+      var updatedStudent = updatedDriver.student
+      updatedStudent.points += points
+      updatedDriver.student = updatedStudent
+      availableDrivers[driverIndex] = updatedDriver
+      
+      // Update current student if they're the driver
+      if let currentStudent = self.currentStudent, currentStudent.id == updatedDriver.student.id {
+          var updatedCurrentStudent = currentStudent
+          updatedCurrentStudent.points += points
+          self.currentStudent = updatedCurrentStudent
+      }
+      
+      // Record the transaction
+      let transaction = PointsTransaction(
+          id: UUID().uuidString,
+          driverId: driverId,
+          rideRequestId: "bonus-\(UUID().uuidString)",
+          points: points,
+          timestamp: Date(),
+          reason: reason,
+          description: description
+      )
+      
+      pointsTransactions.append(transaction)
+  }
     // Cancel a ride request
     func cancelRideRequest(request: RideRequest) {
         if let index = myRideRequests.firstIndex(where: { $0.id == request.id }) {
@@ -191,6 +350,42 @@ class RideShareViewModel: ObservableObject {
                 incomingRideRequests[driverIndex].status = .cancelled
             }
         }
+    }
+    
+//    // Award bonus points (e.g., for referrals, special events)
+//    func awardBonusPoints(driverId: String, points: Int, reason: PointsReason, description: String) {
+//        guard let driverIndex = availableDrivers.firstIndex(where: { $0.id == driverId }) else {
+//            return
+//        }
+//        
+//        // Update driver's points
+//        var updatedDriver = availableDrivers[driverIndex]
+//        updatedDriver.student.points += points
+//        availableDrivers[driverIndex] = updatedDriver
+//        
+//        // Update current student if they're the driver
+//        if currentStudent?.id == updatedDriver.student.id {
+//            currentStudent?.points += points
+//        }
+//        
+//        // Record the transaction
+//        let transaction = PointsTransaction(
+//            id: UUID().uuidString,
+//            driverId: driverId,
+//            rideRequestId: "bonus-\(UUID().uuidString)",
+//            points: points,
+//            timestamp: Date(),
+//            reason: reason,
+//            description: description
+//        )
+//        
+//        pointsTransactions.append(transaction)
+//    }
+//    
+    // Get points transactions for a specific driver
+    func getPointsTransactionsForDriver(driverId: String) -> [PointsTransaction] {
+        return pointsTransactions.filter { $0.driverId == driverId }
+            .sorted(by: { $0.timestamp > $1.timestamp }) // Sort by most recent first
     }
 }
 
@@ -256,6 +451,28 @@ struct RideShareMainView: View {
                         .background(Color.maroonDark)
                         .cornerRadius(12)
                     }
+                  
+                  // My Rides Button
+                  // My Rides Button
+                  NavigationLink(destination:
+                    DriverDashboardView()
+                      .environmentObject(viewModel)) {
+                      VStack {
+                          Image(systemName: "person.fill")
+                              .resizable()
+                              .aspectRatio(contentMode: .fit)
+                              .frame(width: 40, height: 40)
+                              .foregroundColor(.white)
+                          
+                          Text("Driver Dash")
+                              .font(.caption)
+                              .foregroundColor(.white)
+                      }
+                      .frame(maxWidth: .infinity)
+                      .padding()
+                      .background(Color.goldDark)
+                      .cornerRadius(12)
+                  }
                 }
                 .padding()
                 

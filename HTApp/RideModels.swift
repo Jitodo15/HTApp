@@ -10,7 +10,7 @@ import SwiftUI
 // MARK: - Models
 
 // Student Profile Model
-struct Student: Identifiable, Codable {
+struct Student: Identifiable, Encodable {
     let id: String
     let name: String
     let major: String
@@ -20,6 +20,7 @@ struct Student: Identifiable, Codable {
     var isDriver: Bool = false
     var rating: Double = 0.0
     var totalRides: Int = 0
+    var points: Int = 0
 }
 
 // Driver's vehicle information
@@ -52,14 +53,23 @@ struct RideLocation: Codable, Equatable {
     )
 }
 
-// Driver model that extends Student
-struct Driver: Identifiable, Codable {
+//// Driver model that extends Student
+//struct Driver: Identifiable, Codable {
+//    let id: String
+//    let student: Student
+//    let vehicle: Vehicle
+//    var isAvailable: Bool = true
+//    var currentLocation: RideLocation
+//    var destination: RideLocation? // For outbound/inbound indication
+//    var departureTime: Date
+//    var routeType: RouteType
+//}
+struct Driver: Identifiable {
     let id: String
-    let student: Student
+    var student: Student // Changed from 'let' to 'var' to allow mutation
     let vehicle: Vehicle
-    var isAvailable: Bool = true
+    var isAvailable: Bool
     var currentLocation: RideLocation
-    var destination: RideLocation? // For outbound/inbound indication
     var departureTime: Date
     var routeType: RouteType
 }
@@ -71,6 +81,7 @@ enum RouteType: String, Codable, CaseIterable {
 }
 
 // Ride request model
+// Update RideRequest to track if points were awarded
 struct RideRequest: Identifiable, Codable {
     let id: String
     let passengerId: String
@@ -82,6 +93,8 @@ struct RideRequest: Identifiable, Codable {
     var status: RideStatus
     var rating: Double?
     var feedback: String?
+    var pointsAwarded: Bool = false // Track if points were awarded
+    var completionTime: Date?
 }
 
 // Ride status enum

@@ -644,7 +644,17 @@ struct EnhancedCalendarView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
+            VStack(spacing: 30) {
+                HStack {
+                  Text("Calendar")
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color.maroonDark)
+                  
+                  Spacer()
+                }
+                .padding(.horizontal)
+              
                 // Top bar with search and view mode
                 HStack {
                     // Search Bar
@@ -782,7 +792,7 @@ struct EnhancedCalendarView: View {
                 .background(Color.white)
                 .shadow(radius: 2)
             }
-            .navigationTitle("Calendar")
+            .navigationBarHidden(true)
             .sheet(isPresented: $showingEventEditor) {
                 EventEditorView(
                     isNew: selectedEvent == nil,

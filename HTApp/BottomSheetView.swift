@@ -37,15 +37,7 @@ struct BottomSheetView: View {
                     
                     Spacer()
                     
-                    Button(action: {
-                        // Contact driver functionality
-                    }) {
-                        Image(systemName: "phone.fill")
-                            .padding()
-                            .background(Color.maroonDark)
-                            .foregroundColor(.white)
-                            .clipShape(Circle())
-                    }
+                    
                 }
                 
                 Divider()
@@ -71,16 +63,7 @@ struct BottomSheetView: View {
                     }
                 }
                 
-                Button(action: {
-                    // Cancel ride functionality
-                }) {
-                    Text("Cancel Ride")
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.maroonDark)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+  
             }
             .padding()
             .background(Color(.systemBackground))

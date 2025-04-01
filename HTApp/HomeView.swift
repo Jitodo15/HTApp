@@ -24,9 +24,9 @@ struct HomeView: View {
     let menuItems = [
         MenuItem(title: "Main buffet", items: ["🍝 Pasta", "🥢 Stir Fry", "🥦 Roasted Vegetables", "🍚 Rice", "🍲 Soup of the Day"]),
         MenuItem(title: "Veggie bar", items: ["🥗 Coleslaw", "🥬 Kale Salad", "🧀 Shredded cheese", "🥕 Shredded Carrots", "🍯 Sauces"]),
-        MenuItem(title: "Grill side menu", items: ["🍔 Hamburgers", "🧀 Cheeseburgers", "🍗 Grilled Chicken", "🍟 French Fries", "🧅 Onion Rings"]),
+        MenuItem(title: "Grill side menu", items: ["🍔 Hamburgers", "🧀 Cheeseburgers", "🍕 Pizza (Pepperoni and Cheese)", "🍟 French Fries", "🌭 Hot dogs"]),
         MenuItem(title: "Sandwich bar", items: ["🦃 Turkey", "🥩 Ham", "🐟 Tuna Salad", "🧀 Cheese Options", "🍞 Bread Options"]),
-        MenuItem(title: "Dessert", items: ["🍦 Ice Cream", "🍪 Cookies", "🍫 Brownies", "🍎 Fruit", "🍰 Cake"]),
+        MenuItem(title: "Dessert", items: ["🧁 Blueberry Cupcake", "🍪 Cookies", "🍫 Brownies", "🍎 Fruit", "🍰 Cake"]),
     ]
     
     @State private var events: [CalendarEventDetail] = [
@@ -175,8 +175,6 @@ struct HomeView: View {
         .animation(.easeInOut(duration: 0.2), value: showingChatbot)
     }
 }
-
-
 
 // Supporting Views
 

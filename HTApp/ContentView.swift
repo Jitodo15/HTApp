@@ -20,7 +20,7 @@ struct ContentView: View {
 
 extension Color {
     // Maroon Color Palette
-    static let maroonDark = Color(red: 0.5, green: 0.0, blue: 0.0)
+    static let maroonDark = Color(red: 96/255, green: 11/255, blue: 16/255)
     static let maroonLight = Color(red: 0.5, green: 0.0, blue: 0.0).opacity(0.1)
     static let maroonMedium = Color(red: 0.6, green: 0.2, blue: 0.2)
     

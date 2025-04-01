@@ -18,7 +18,7 @@ struct AppTabView: View {
                         Image(systemName: "house.fill")
                         Text("Home")
                     }
-              TutoringTabView(maroonColor: Color(red: 0.5, green: 0, blue: 0), goldColor: Color(red: 0.8, green: 0.7, blue: 0.2))
+              TutoringTabView(maroonColor: Color.maroonDark, goldColor: Color.goldDark)
                 .tabItem {
                     Image(systemName: "book.fill")
                     Text("Tutoring")
