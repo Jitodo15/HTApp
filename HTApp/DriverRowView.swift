@@ -17,13 +17,13 @@ struct DriverRowView: View {
             // Driver avatar
             ZStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.2))
+                .fill(Color.maroonDark.opacity(0.2))
                     .frame(width: 50, height: 50)
                 
                 Text(String(driver.student.name.prefix(1)))
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.black)
             }
             
             // Driver information
@@ -171,7 +171,7 @@ struct DriverDetailView: View {
                         Text("Request Ride")
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
-                            .background(Color.blue)
+                            .background(Color.maroonDark)
                             .foregroundColor(.white)
                             .cornerRadius(8)
                     }
@@ -506,7 +506,7 @@ struct AcceptedRideRow: View {
         HStack {
             Image(systemName: "person.fill")
                 .padding(10)
-                .background(Circle().fill(Color.blue.opacity(0.2)))
+                .background(Circle().fill(Color.maroonDark.opacity(0.2)))
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("Ayomide Isinkaye")

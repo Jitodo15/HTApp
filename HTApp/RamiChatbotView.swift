@@ -125,7 +125,7 @@ struct ChatbotOverlay: View {
     // Message state
     @State private var messageText: String = ""
     @State private var messages: [ChatMessage] = [
-        ChatMessage(content: "Hello! I'm RAMi, your academic advising assistant. How can I help you today?", isUser: false)
+        ChatMessage(content: "Hello! I'm RAMmy, your academic advising assistant. How can I help you today?", isUser: false)
     ]
     
     // Chatbot instance

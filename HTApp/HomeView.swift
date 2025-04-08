@@ -9,6 +9,52 @@ import Foundation
 import SwiftUI
 import MapKit
 
+
+struct NewsListView: View {
+    let maroonColor: Color
+    let goldColor: Color
+    let allNewsItems: [NewsItem]
+    @Environment(\.presentationMode) var presentationMode // For dismissing
+    
+    var body: some View {
+        NavigationView {
+            List {
+                ForEach(allNewsItems) { item in
+                    VStack(alignment: .leading, spacing: 8) {
+                        Link(destination: URL(string: item.url)!) {
+                            Text(item.title)
+                                .font(.headline)
+                                .foregroundColor(maroonColor)
+                                .underline()
+                                .padding(.top, 6)
+                        }
+                        
+                        Text(item.preview)
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 4)
+                        
+                        HStack {
+                            Spacer()
+                            Text(item.date)
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.vertical, 6)
+                }
+            }
+            .navigationTitle("Campus News")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(trailing:
+                Button("Done") {
+                    presentationMode.wrappedValue.dismiss()
+                }
+            )
+        }
+    }
+}
+
 struct HomeView: View {
     // Theme colors
    let maroonColor = Color.maroonMedium
@@ -19,10 +65,11 @@ struct HomeView: View {
     
     // State for chatbot overlay
     @State private var showingChatbot = false
+    @State var showingNewsList = false
     
     // Sample data for demonstration
     let menuItems = [
-        MenuItem(title: "Main buffet", items: ["🍝 Pasta", "🥢 Stir Fry", "🥦 Roasted Vegetables", "🍚 Rice", "🍲 Soup of the Day"]),
+        MenuItem(title: "Main buffet", items: ["🍝 Pasta", "🍗 Chicken Alfredo", "🥦 Roasted Vegetables", "🍚 Rice", "🍲 Gravy"]),
         MenuItem(title: "Veggie bar", items: ["🥗 Coleslaw", "🥬 Kale Salad", "🧀 Shredded cheese", "🥕 Shredded Carrots", "🍯 Sauces"]),
         MenuItem(title: "Grill side menu", items: ["🍔 Hamburgers", "🧀 Cheeseburgers", "🍕 Pizza (Pepperoni and Cheese)", "🍟 French Fries", "🌭 Hot dogs"]),
         MenuItem(title: "Sandwich bar", items: ["🦃 Turkey", "🥩 Ham", "🐟 Tuna Salad", "🧀 Cheese Options", "🍞 Bread Options"]),
@@ -34,11 +81,73 @@ struct HomeView: View {
         CalendarEventDetail(title: "COSC2327-1", startDate: Date(), endDate: Date().addingTimeInterval(3600), notes: "Class lecture", color: .pink)
     ]
 
-    let newsItems = [
-        NewsItem(title: "Spring Break Service Trip Signups Open", preview: "Students interested in volunteer opportunities during the Spring break should...", date: "Mar 14"),
-        NewsItem(title: "New Amazon Lockers on campus!", preview: "New Amazon lockers (Cantu) have been installed across campus as...", date: "Mar 15"),
-        NewsItem(title: "Rams place second in BOTB Nationals", preview: "Rams win second place in HBCU Battle of the Brains competition...", date: "Mar 16")
-    ]
+      // Featured news items for the preview section
+      let previewNewsItems = [
+          NewsItem(
+              title: "Rams place second in BOTB Nationals",
+              preview: "Rams win second place in HBCU Battle of the Brains competition...",
+              date: "Mar 16",
+              url: "https://www.linkedin.com/posts/huston-tillotson-school-of-business-and-technology-7836b41b0_securing-silver-at-the-2025-hbcu-battle-of-activity-7310269226550734848-oFOs?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAADmnp6ABKKJfb9uGgHYUsTyXEvHceWMpqBE"
+          ),
+          NewsItem(
+              title: "Huston-Tillotson Hosting First HBCU AiCON",
+              preview: "HT is hosting the first-ever AI conference for HBCUs...",
+              date: "Mar 18",
+              url: "https://htu.edu/huston-tillotson-university-hosts-inaugural-hbcu-ai-conference-and-training-summit/"
+          ),
+          NewsItem(
+              title: "SBT Financial Wellness Symposium on April 5th",
+              preview: "Join the School of Business and Technology for its 4th annual Financial Wellness Symposium...",
+              date: "Mar 20",
+              url: "https://www.linkedin.com/posts/huston-tillotson-school-of-business-and-technology-7836b41b0_the-school-of-business-technologys-4th-activity-7305558215964930049-6x2G?utm_source=social_share_send&utm_medium=member_desktop_web&rcm=ACoAADmnp6ABKKJfb9uGgHYUsTyXEvHceWMpqBE"
+          )
+      ]
+
+      // Full list of news items including the preview ones and additional ones
+      var allNewsItems: [NewsItem] {
+          // Combine preview news with additional news
+          let additionalNewsItems = [
+              NewsItem(
+                  title: "HT Rams Baseball Sweeps Weekend Series",
+                  preview: "The Huston-Tillotson Rams baseball team dominated their weekend series against rival university with three consecutive wins...",
+                  date: "Mar 25",
+                  url: "https://htu.edu"
+              ),
+              NewsItem(
+                  title: "School of Education Hosts Teaching Career Fair",
+                  preview: "The Huston-Tillotson School of Education is hosting its annual Teaching Career Fair with over 20 school districts in attendance...",
+                  date: "Mar 23",
+                  url: "https://htu.edu"
+              ),
+              NewsItem(
+                  title: "Grammy-Winning Artist to Perform at Spring Concert",
+                  preview: "Huston-Tillotson's Spring Concert Series will feature a special performance by Grammy-winning artist next month...",
+                  date: "Mar 22",
+                  url: "https://htu.edu"
+              ),
+              NewsItem(
+                  title: "HT Students Win at Regional Hackathon",
+                  preview: "A team of Huston-Tillotson computer science students took first place at the regional collegiate hackathon...",
+                  date: "Mar 15",
+                  url: "https://htu.edu"
+              ),
+              NewsItem(
+                  title: "New Sustainability Initiative Launched on Campus",
+                  preview: "Huston-Tillotson University announces a new campus-wide sustainability initiative that aims to reduce carbon footprint by 30%...",
+                  date: "Mar 12",
+                  url: "https://htu.edu"
+              ),
+              NewsItem(
+                  title: "Alumni Association Awards $50,000 in Scholarships",
+                  preview: "The Huston-Tillotson Alumni Association has awarded $50,000 in scholarships to current students for the upcoming academic year...",
+                  date: "Mar 10",
+                  url: "https://htu.edu"
+              )
+          ]
+          
+          return previewNewsItems + additionalNewsItems
+      }
+
     
     var body: some View {
         ZStack {
@@ -116,17 +225,31 @@ struct HomeView: View {
                             .padding(.horizontal)
                     }
                     
-                    // News Section
-                    VStack(alignment: .leading) {
+                  // News Section
+                  // News Section in HomeView
+                  VStack(alignment: .leading) {
                         Text("Campus News")
                             .font(.headline)
                             .foregroundColor(.black)
                             .padding(.horizontal)
-                        
-                        NewsView(maroonColor: maroonColor, newsItems: newsItems)
-                            .frame(height: 350)
-                            .padding(.horizontal)
-                    }
+                                              
+                            NewsView(
+                              maroonColor: maroonColor,
+                              newsItems: previewNewsItems,
+                                                  showSheet: $showingNewsList, // Pass the binding
+                                                  allNewsItems: allNewsItems
+                                              )
+                                              .frame(height: 350)
+                                              .padding(.horizontal)
+                             }
+                                          .sheet(isPresented: $showingNewsList) {
+                                              // This is the sheet that will slide up
+                                              NewsListView(
+                                                  maroonColor: maroonColor,
+                                                  goldColor: goldColor,
+                                                  allNewsItems: allNewsItems
+                                              )
+                   }
                 }
                 .padding(.vertical)
             }
@@ -276,7 +399,7 @@ struct CalendarPreviewView: View {
             VStack(alignment: .leading) {
                 // Date header
                 HStack {
-                    Text("March")
+                    Text("April")
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.black)
@@ -321,22 +444,26 @@ struct CalendarPreviewView: View {
     }
 }
 
+// Supporting Views (unchanged)
 struct ShuttleTrackingPreviewView: View {
     let maroonColor: Color
+    var onTap: (() -> Void)? = nil
+    
     @State private var region = MKCoordinateRegion(
-        center: CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431), // Austin coordinates as example
+        center: CLLocationCoordinate2D(latitude: 30.2672, longitude: -97.7431), // Example: Austin coordinates
         span: MKCoordinateSpan(latitudeDelta: 0.02, longitudeDelta: 0.02)
     )
     
     var body: some View {
         ZStack {
-            RoundedRectangle(cornerRadius: 10)
-            .stroke(Color.maroonDark.opacity(0.2), lineWidth: 1)
-            .fill(Color.maroonLight)
-            .shadow(color: Color.maroonDark.opacity(0.3), radius: 5, x: 0, y: 2)
+        
+          RoundedRectangle(cornerRadius: 10)
+          .stroke(Color.maroonDark.opacity(0.2), lineWidth: 1)
+          .fill(Color.maroonLight)
+          .shadow(color: Color.maroonDark.opacity(0.3), radius: 5, x: 0, y: 2)
             
             VStack {
-                // Map view with car emoji overlay
+                // Map view with shuttle emoji overlay
                 ZStack {
                     Map(coordinateRegion: $region, showsUserLocation: false, userTrackingMode: .none)
                         .cornerRadius(8)
@@ -347,6 +474,9 @@ struct ShuttleTrackingPreviewView: View {
                 }
             }
             .padding(10)
+            .onTapGesture {
+                onTap?()
+            }
         }
     }
 }
@@ -379,14 +509,16 @@ struct NewsItemView: View {
     }
 }
 
+// Modified NewsView to handle button click
 struct NewsView: View {
     let maroonColor: Color
     let newsItems: [NewsItem]
+    @Binding var showSheet: Bool // New binding to control the sheet
+    let allNewsItems: [NewsItem] // Pass all news items
     
     var body: some View {
         ZStack {
             RoundedRectangle(cornerRadius: 10)
-            .stroke(Color.maroonDark.opacity(0.2), lineWidth: 1)
             .fill(Color.maroonLight)
             .shadow(color: Color.maroonDark.opacity(0.3), radius: 5, x: 0, y: 2)
             
@@ -396,7 +528,8 @@ struct NewsView: View {
                 }
                 
                 Button(action: {
-                    // Action to see all news
+                    // Simply toggle the sheet presentation
+                    showSheet = true
                 }) {
                     HStack {
                         Spacer()
@@ -414,6 +547,18 @@ struct NewsView: View {
             .padding()
         }
     }
+}
+
+// Helper method to find ancestor view
+func findAncestorView<T: View>(ofType type: T.Type) -> HomeView? {
+        var responder: UIResponder? = UIApplication.shared.windows.first?.rootViewController?.view
+        while let nextResponder = responder?.next {
+            if let viewController = nextResponder as? UIHostingController<HomeView> {
+                return viewController.rootView
+            }
+            responder = nextResponder
+        }
+        return nil
 }
 
 // Data Models
@@ -449,6 +594,7 @@ struct NewsItem: Identifiable {
     let title: String
     let preview: String
     let date: String
+    let url: String
 }
 
 // Preview Provider

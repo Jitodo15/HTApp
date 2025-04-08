@@ -116,10 +116,7 @@ struct HTAppApp: App {
     var body: some Scene {
         WindowGroup {
           ZStack {
-            if showSplash {
-              SplashScreenView(showSplash: $showSplash)
-                .transition(.opacity)
-            } else{
+          
               NavigationView {
                 SignupView()
                   .preferredColorScheme(.light)
@@ -131,8 +128,7 @@ struct HTAppApp: App {
               }
               .transition(.opacity)
             }
-          }
-          .animation(.easeInOut(duration: 0.5), value: showSplash)
+        
         }
     }
     

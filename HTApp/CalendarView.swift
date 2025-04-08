@@ -8,8 +8,16 @@
 import Foundation
 import SwiftUI
 import EventKit
+import SwiftData
 
 // Date extension for weekStart
+
+struct DefaultEvent: Decodable {
+    let title: String
+    let date: String
+    let description: String
+}
+
 extension Date {
     func startOfWeek() -> Date {
         let calendar = Calendar.current
@@ -17,6 +25,7 @@ extension Date {
         return calendar.date(from: components) ?? self
     }
 }
+
 
 // View modes
 enum CalendarViewMode {
@@ -86,7 +95,7 @@ struct DayHeaderView: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 5)
-        .background(isSelected ? Color.blue.opacity(0.2) : Color.clear)
+        .background(isSelected ? Color.maroonDark.opacity(0.2) : Color.clear)
         .clipShape(RoundedRectangle(cornerRadius: 8))
     }
     
@@ -200,24 +209,39 @@ struct MonthView: View {
     @Binding var selectedDate: Date
     let events: [CalendarEventDetail]
     let onDateSelect: (Date) -> Void
-    
-    @State private var currentMonth: Date
+    @Binding var currentMonth: Date
+
     private let calendar = Calendar.current
     private let columns = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
     private let dayWidth: CGFloat = 40
-    
-    init(selectedDate: Binding<Date>, events: [CalendarEventDetail], onDateSelect: @escaping (Date) -> Void) {
-        self._selectedDate = selectedDate
-        self.events = events
-        self.onDateSelect = onDateSelect
-        
-        // Initialize currentMonth from selectedDate
-        let components = calendar.dateComponents([.year, .month], from: selectedDate.wrappedValue)
-        self._currentMonth = State(initialValue: calendar.date(from: components) ?? selectedDate.wrappedValue)
-    }
-    
+
     var body: some View {
         VStack(spacing: 0) {
+//            // Month Navigation
+//            HStack {
+//                Button(action: {
+//                    currentMonth = calendar.date(byAdding: .month, value: -1, to: currentMonth) ?? currentMonth
+//                }) {
+//                    Image(systemName: "chevron.left")
+//                        .padding(.horizontal)
+//                }
+//
+//                Spacer()
+//
+//                Text(currentMonthHeader)
+//                    .font(.headline)
+//
+//                Spacer()
+//
+//                Button(action: {
+//                    currentMonth = calendar.date(byAdding: .month, value: 1, to: currentMonth) ?? currentMonth
+//                }) {
+//                    Image(systemName: "chevron.right")
+//                        .padding(.horizontal)
+//                }
+//            }
+//            .padding(.bottom, 10)
+
             // Day of week header
             HStack(spacing: 0) {
                 ForEach(0..<7, id: \.self) { index in
@@ -227,18 +251,18 @@ struct MonthView: View {
                         .frame(width: dayWidth, height: 30)
                 }
             }
-            
+
             // Days grid
             LazyVGrid(columns: columns, spacing: 0) {
                 ForEach(daysInMonth(), id: \.self) { date in
                     if let date = date {
                         let dayEvents = eventsForDate(date)
-                        
+
                         VStack(spacing: 2) {
                             Text("\(calendar.component(.day, from: date))")
                                 .font(.callout)
                                 .fontWeight(calendar.isDate(date, inSameDayAs: selectedDate) ? .bold : .regular)
-                            
+
                             if !dayEvents.isEmpty {
                                 HStack {
                                     ForEach(0..<min(dayEvents.count, 3), id: \.self) { index in
@@ -257,11 +281,12 @@ struct MonthView: View {
                         .frame(width: dayWidth, height: 40)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(calendar.isDate(date, inSameDayAs: selectedDate) ? Color.blue.opacity(0.2) : Color.clear)
+                              .fill(calendar.isDate(date, inSameDayAs: selectedDate) ? Color.maroonDark.opacity(0.2) : Color.clear)
                         )
                         .opacity(calendar.component(.month, from: date) == calendar.component(.month, from: currentMonth) ? 1 : 0.3)
                         .onTapGesture {
                             onDateSelect(date)
+                            selectedDate = date
                         }
                     } else {
                         // Empty cell
@@ -273,50 +298,56 @@ struct MonthView: View {
             }
         }
     }
-    
+
     private func getDayOfWeekLetter(for index: Int) -> String {
-        let days = ["S", "M", "T", "W", "T", "F", "S"]
-        return days[index]
+        let weekdaySymbols = calendar.veryShortWeekdaySymbols
+        let firstWeekdayIndex = calendar.firstWeekday - 1
+        let symbolIndex = (firstWeekdayIndex + index) % 7
+        return weekdaySymbols[symbolIndex]
     }
-    
+
+//    private var currentMonthHeader: String {
+//        let formatter = DateFormatter()
+//        formatter.dateFormat = "MMMM yyyy"
+//        return formatter.string(from: currentMonth)
+//    }
+
     private func daysInMonth() -> [Date?] {
-        var days = [Date?]()
-        
-        // Find first day of month
+        var days: [Date?] = []
+
         let components = calendar.dateComponents([.year, .month], from: currentMonth)
         guard let firstDay = calendar.date(from: components) else { return [] }
-        
-        // Find last day of month
+
         guard let nextMonth = calendar.date(byAdding: .month, value: 1, to: firstDay),
               let lastDay = calendar.date(byAdding: .day, value: -1, to: nextMonth) else { return [] }
-        
-        // Determine weekday of first day (0 = Sunday)
+
         let firstWeekday = calendar.component(.weekday, from: firstDay) - 1
-        
-        // Add empty cells for days before first day of month
+
         for _ in 0..<firstWeekday {
             days.append(nil)
         }
-        
-        // Add all days in month
+
         let daysInMonth = calendar.component(.day, from: lastDay)
         for day in 1...daysInMonth {
             if let date = calendar.date(bySettingHour: 0, minute: 0, second: 0, of: calendar.date(byAdding: .day, value: day - 1, to: firstDay)!) {
                 days.append(date)
             }
         }
-        
-        // Fill remaining cells to complete the grid
-        let remainingCells = 42 - days.count // 6 rows of 7 days
+
+        let remainingCells = 42 - days.count
         for _ in 0..<remainingCells {
             days.append(nil)
         }
-        
+
         return days
     }
-    
+
     private func eventsForDate(_ date: Date) -> [CalendarEventDetail] {
-        return events.filter { calendar.isDate($0.startDate, inSameDayAs: date) }
+        events.filter {
+            calendar.isDate($0.startDate, inSameDayAs: date)
+            || calendar.isDate($0.endDate, inSameDayAs: date)
+            || ($0.startDate < date && $0.endDate > date)
+        }
     }
 }
 
@@ -607,6 +638,7 @@ struct EnhancedCalendarView: View {
     @State private var calendarAccessGranted: Bool = false
     @State private var weekStartDate: Date = Date().startOfWeek()
     @State private var viewMode: CalendarViewMode = .month
+    @State private var currentMonth: Date = Calendar.current.date(from: Calendar.current.dateComponents([.year, .month], from: Date())) ?? Date()
     
     // Filtered events based on search or date selection
     var filteredEvents: [CalendarEventDetail] {
@@ -642,19 +674,68 @@ struct EnhancedCalendarView: View {
         }
     }
     
+    private func loadDefaultEvents() -> [CalendarEventDetail] {
+        print("🔍 Attempting to load default events from calendar.json")
+
+        guard let url = Bundle.main.url(forResource: "calendar", withExtension: "json") else {
+            print("❌ Could not find calendar.json in bundle")
+            return []
+        }
+
+        do {
+            let data = try Data(contentsOf: url)
+            let rawEvents = try JSONDecoder().decode([DefaultEvent].self, from: data)
+            print("✅ Decoded \(rawEvents.count) default events")
+
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+
+            let burgundy = Color(red: 128 / 255, green: 0, blue: 32 / 255)
+
+            var result: [CalendarEventDetail] = []
+
+            for raw in rawEvents {
+                let dateRange = raw.date.components(separatedBy: " to ")
+
+                guard let start = formatter.date(from: dateRange[0]) else {
+                    print("⚠️ Skipping event with invalid start date: \(raw.date)")
+                    continue
+                }
+
+                let end = dateRange.count > 1 ? formatter.date(from: dateRange[1]) : Calendar.current.date(byAdding: .hour, value: 1, to: start)!
+
+                result.append(CalendarEventDetail(
+                    title: raw.title,
+                    startDate: start,
+                    endDate: end ?? start,
+                    notes: raw.description,
+                    color: burgundy
+                ))
+            }
+
+            print("🎯 Final event count from JSON: \(result.count)")
+            return result
+
+        } catch {
+            print("❌ JSON decoding failed: \(error.localizedDescription)")
+            return []
+        }
+    }
+
+    
     var body: some View {
         NavigationView {
-            VStack(spacing: 30) {
+            VStack(spacing: 0) {
+                
                 HStack {
-                  Text("Calendar")
+                    Text("Calendar")
                     .font(.largeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(Color.maroonDark)
-                  
-                  Spacer()
-                }
-                .padding(.horizontal)
-              
+                                  
+                        Spacer()
+                    }
+                                .padding(.horizontal)
                 // Top bar with search and view mode
                 HStack {
                     // Search Bar
@@ -678,95 +759,107 @@ struct EnhancedCalendarView: View {
                     .pickerStyle(SegmentedPickerStyle())
                     .frame(width: 150)
                 }
-                .padding(.horizontal)
                 .padding(.top, 10)
+                .zIndex(2)
                 
                 // Date navigation
-                HStack {
-                    Button(action: previousDate) {
-                        Image(systemName: "chevron.left")
-                            .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    VStack {
-                        Text(headerDateText)
-                            .font(.headline)
+                
+                    HStack {
+                        Button(action: previousDate) {
+                            Image(systemName: "chevron.left")
+                                .padding()
+                        }
                         
-                        if viewMode == .week {
-                            Text(weekRangeText)
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
+                        Spacer()
+                        
+                        VStack {
+                            Text(headerDateText)
+                                .font(.headline)
+                            
+                            if viewMode == .week {
+                                Text(weekRangeText)
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: nextDate) {
+                            Image(systemName: "chevron.right")
+                                .padding()
+                        }
+                        
+                        Button(action: { selectedDate = Date() }) {
+                            Text("Today")
+                                .padding(.horizontal)
                         }
                     }
-                    
-                    Spacer()
-                    
-                    Button(action: nextDate) {
-                        Image(systemName: "chevron.right")
-                            .padding()
-                    }
-                    
-                    Button(action: { selectedDate = Date() }) {
-                        Text("Today")
-                            .padding(.horizontal)
-                    }
-                }
-                .padding(.vertical, 5)
+                    .padding(.vertical, 5)
+                    .zIndex(1)
                 
                 
                 // Calendar view based on mode
-                Group {
-                    switch viewMode {
-                    case .day:
-                        DayView(selectedDate: $selectedDate, events: filteredEventsByDate, onEventTap: selectEvent)
-                    case .week:
-                        WeekView(weekStartDate: $weekStartDate, selectedDate: $selectedDate, events: filteredEventsByDate, onEventTap: selectEvent)
-                    case .month:
-                        VStack {
-                            MonthView(selectedDate: $selectedDate, events: filteredEventsByDate, onDateSelect: { date in
-                                selectedDate = date
-                            })
-                            
-                            // Daily events list below month view
-                            VStack(alignment: .leading) {
-                                Text("\(dayHeaderText)")
-                                    .font(.headline)
-                                    .padding(.horizontal)
-                                    .padding(.top, 8)
-                                
-                                Divider()
-                                
-                                if dailyEvents.isEmpty {
-                                    Text("No events")
-                                        .foregroundColor(.gray)
-                                        .padding()
-                                } else {
-                                    List {
-                                        ForEach(dailyEvents) { event in
-                                            DailyEventRow(event: event)
-                                                .onTapGesture {
-                                                    selectEvent(event)
+                ScrollView{
+                    VStack(spacing:0){
+                        
+                        Group {
+                            switch viewMode {
+                            case .day:
+                                DayView(selectedDate: $selectedDate, events: filteredEventsByDate, onEventTap: selectEvent)
+                                    .onAppear {
+                                        print("Showing \(filteredEventsByDate.count) events for current view")
+                                    }
+                            case .week:
+                                WeekView(weekStartDate: $weekStartDate, selectedDate: $selectedDate, events: filteredEventsByDate, onEventTap: selectEvent)
+                            case .month:
+                                VStack {
+                                    MonthView(selectedDate: $selectedDate, events: filteredEventsByDate, onDateSelect: { date in
+                                        selectedDate = date
+                                    }, currentMonth: $currentMonth)
+                                    
+                                    // Daily events list below month view
+                                    VStack(alignment: .leading) {
+                                        Text("\(dayHeaderText)")
+                                            .font(.headline)
+                                            .padding(.horizontal)
+                                            .padding(.top, 8)
+                                        
+                                        Divider()
+                                        
+                                        if dailyEvents.isEmpty {
+                                            Text("No events")
+                                                .foregroundColor(.gray)
+                                                .padding()
+                                        } else {
+                                            List {
+                                                ForEach(dailyEvents) { event in
+                                                    DailyEventRow(event: event)
+                                                        .onTapGesture {
+                                                            selectEvent(event)
+                                                        }
                                                 }
+                                            }
+                                            .listStyle(PlainListStyle())
+                                            .frame(height: 200)
                                         }
                                     }
-                                    .listStyle(PlainListStyle())
-                                    .frame(height: 200)
+                                    .background(Color(.systemBackground))
+                                    .cornerRadius(10)
+                                    .padding(.horizontal)
+                                    .padding(.bottom, 10)
                                 }
                             }
-                            .background(Color(.systemBackground))
-                            .cornerRadius(10)
-                            .padding(.horizontal)
                         }
                     }
                 }
-                .onChange(of: viewMode) { _ in
-                    // Update dates when changing view modes
-                    if viewMode == .week {
-                        weekStartDate = selectedDate.startOfWeek()
-                    }
-                }
+//                        .onChange(of: viewMode) { _ in
+//                            // Update dates when changing view modes
+//                            if viewMode == .week {
+//                                weekStartDate = selectedDate.startOfWeek()
+//                            }
+//                        }
+            
                 
                 // Add Event Button
                 HStack {
@@ -789,6 +882,7 @@ struct EnhancedCalendarView: View {
                     .padding(.trailing)
                 }
                 .padding(.vertical, 10)
+                .zIndex(3)
                 .background(Color.white)
                 .shadow(radius: 2)
             }
@@ -822,8 +916,11 @@ struct EnhancedCalendarView: View {
                 }
             }
             .onAppear {
+                print(".onappear fired")
+                selectedDate = Date()
                 requestCalendarAccess()
             }
+
         }
     }
     
@@ -908,17 +1005,6 @@ struct EnhancedCalendarView: View {
         }
     }
     
-//    private func nextDate() {
-//        switch viewMode {
-//        case .day:
-//            selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate)!
-//        case .week:
-//            weekStartDate = Calendar.current.date(byAdding: .day, value: 7, to: weekStartDate)!
-//            selectedDate = weekStartDate
-//        case .month:
-//            selectedDate = Calendar.current.date(byAdding: .month, value: -1, to: selectedDate)!
-//        }
-//    }
     
     private func nextDate() {
         switch viewMode {
@@ -934,64 +1020,39 @@ struct EnhancedCalendarView: View {
     
     // Event handling functions
     private func requestCalendarAccess() {
+        print("📬 requestCalendarAccess called")
+
         eventStore.requestAccess(to: .event) { granted, error in
             DispatchQueue.main.async {
-                calendarAccessGranted = granted
                 if granted {
+                    print("✅ Calendar access granted")
                     loadEvents()
+                } else {
+                    print("❌ Calendar access denied")
+                    events = loadDefaultEvents()
                 }
             }
         }
     }
+
     
     private func loadEvents() {
         // In a real app, you would load events from EKEventStore
         // Here we'll use sample data
-        if events.isEmpty {
+        print("loadevents () started ")
+        events.removeAll()
+        
+        let defaultEvents = loadDefaultEvents()
+        print("Loaded \(defaultEvents.count) default events from calendar.json")
+        events.append(contentsOf: defaultEvents)
+        
+    
+            let academicEvents = loadAcademicEvents().map { $0.toCalendarEventDetail() }
+            events.append(contentsOf: academicEvents)
+            
             let calendar = Calendar.current
             let today = Date()
-            
-            // Create sample events
-            for i in -5...10 {
-                if let date = calendar.date(byAdding: .day, value: i, to: today) {
-                    // Morning event
-                    let morningDate = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: date)!
-                    events.append(CalendarEventDetail(
-                        title: "Event \(i+6)",
-                        startDate: morningDate,
-                        endDate: morningDate.addingTimeInterval(3600),
-                        notes: "Description for event \(i+6)",
-                        color: [.blue, .green, .red, .orange, .purple].randomElement()!
-                    ))
-                    
-                   
-                    
-                    // Afternoon event (some days)
-                    if i % 2 == 0 {
-                        let afternoonDate = calendar.date(bySettingHour: 14, minute: 30, second: 0, of: date)!
-                        events.append(CalendarEventDetail(
-                            title: "Meeting \(i+6)",
-                            startDate: afternoonDate,
-                            endDate: afternoonDate.addingTimeInterval(5400),
-                            notes: "Important meeting \(i+6)",
-                            color: [.blue, .green, .red, .orange, .purple].randomElement()!
-                        ))
-                    }
-                    
-                    // Evening event (some other days)
-                    if i % 3 == 0 {
-                        let eveningDate = calendar.date(bySettingHour: 18, minute: 0, second: 0, of: date)!
-                        events.append(CalendarEventDetail(
-                            title: "Dinner \(i+6)",
-                            startDate: eveningDate,
-                            endDate: eveningDate.addingTimeInterval(7200),
-                            notes: "Networking dinner \(i+6)",
-                            color: [.blue, .green, .red, .orange, .purple].randomElement()!
-                        ))
-                    }
-                }
-                            }
-                        }
+          
                     }
                     
                     private func selectEvent(_ event: CalendarEventDetail) {
@@ -1062,8 +1123,8 @@ struct EnhancedCalendarView: View {
                 }
 
                 // Preview provider
-                struct CalendarView_Previews: PreviewProvider {
-                    static var previews: some View {
-                        EnhancedCalendarView()
-                    }
-                }
+struct CalendarView_Previews: PreviewProvider {
+    static var previews: some View {
+            EnhancedCalendarView()
+        }
+}
