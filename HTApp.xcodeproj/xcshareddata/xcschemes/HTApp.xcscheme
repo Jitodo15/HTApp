@@ -77,7 +77,7 @@
       <EnvironmentVariables>
          <EnvironmentVariable
             key = "DB_URL"
-            value = "postgresql://ht_app_user:RnStqFSQJLrM9V2FdyQ6ALgSU101O355@dpg-cvf2fsvnoe9s73bbq87g-a.oregon-postgres.render.com/ht_app"
+            value = "postgresql://htapp_vmdc_user:vs0HTJAkjvztPeTa4VVCaXQZSzypMkkN@dpg-d075nm2li9vc73f02ejg-a.oregon-postgres.render.com/htapp_vmdc"
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
